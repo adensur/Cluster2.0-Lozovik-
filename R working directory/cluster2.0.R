@@ -113,7 +113,7 @@ rad<-function(r){##calculates the distance from particle k to the beginning of t
         N<-ncol(r)
         rad<-rep(0,times=N)
         for(k in 1:N){
-                rad[k]<-r[1,k]^2+r[2,k]^2+r[3,k]^2
+                rad[k]<-(r[1,k]^2+r[2,k]^2+r[3,k]^2)^(0.5)
         }
         rad
 }
