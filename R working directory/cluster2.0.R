@@ -48,6 +48,17 @@ grad.U<-function(r,var,k){##takes numeric vectors x,y,z, and number of particles
         sum<-2*r[var,k]-sum
         sum
 }
+vgrad.U<-function(r){##based on grad.U. returns the 3*N vector of gradient
+        N<-ncol(r)
+        null<-rep(0,times=N)
+        grad<-rbind(null,null,null)##the initial value for vector grad is all zeroes; 3*N matrix
+        for(k in 1:N){
+                for(var in 1:3){
+                        grad[var,k]<-grad.U(r,var,k)
+                }
+        }
+        grad
+}
 rki<-function(r,k,i){##calculates the distance between particle i and particle k; 
         ##x, y, z (vectors) specify coordinates of all particles
         rki<-NULL
@@ -93,15 +104,13 @@ reinit<-function(N){##loads r from file; returns it
         r<-as.matrix(read.csv(file))
         r
 }
-myplot<-function(r,rad){##rad is a vector of shell radiuses. Particles within radk, rad(k+1) will be drown in same color
+myplot<-function(r){##rad is a vector of shell radiuses. Particles within radk, rad(k+1) will be drown in same color
         library(rgl)
-        add<-FALSE
-        l<-length(rad)
         plot3d(r[1,],r[2,],r[3,])##дописать функцию, чтобы рисовала частицы разных оболочек разными цветами
 }##extends possibility of plot3d to plot a matrix 3xN
-descent<-function(N=1:100,print=FALSE){##calcs descent over vector of N's and write each to a file
+descent<-function(N=1:100,print=FALSE,alfa=1){##calcs descent over vector of N's and write each to a file
         for(i in N){
-                r<-gradient.descent(i,alfa=1,K=100000, print=print)
+                r<-gradient.descent(i,alfa=alfa,K=100000, print=print)
                 file<-paste(c("data_init/",i,".csv"),collapse="")
                 write.csv(r,file=file,row.names=FALSE)
                 print(paste(c("printed file",file)),collapse="")
@@ -116,4 +125,30 @@ rad<-function(r){##calculates the distance from particle k to the beginning of t
                 rad[k]<-(r[1,k]^2+r[2,k]^2+r[3,k]^2)^(0.5)
         }
         rad
+}
+temp<-function(r,T){##adds a small, random increments to the coordinates (r) and velocities of the system
+        N<-ncol(r)
+        dr<-rbind(rnorm(N,sd=T),rnorm(N,sd=T),rnorm(N,sd=T)) ##for now T is just the standart
+                                                                ##deviation of the new distribution
+        dv<-rbind(rnorm(N,sd=T),rnorm(N,sd=T),rnorm(N,sd=T))
+        r<-r+dr
+        r<-rbind(r,dv)
+}
+rstep<-function(r, dt=1){##returns a next step of the "leap frog" iteration process
+        N<-ncol(r)
+        deltar<-dt*r[4:6,]##this is now the matrix 3*N of small random increments
+        null<-rep(0,times=N)
+        null<-rbind(null,null,null)##null is now a matrix 3*N of all zeroes
+        deltar<-rbind(deltar,null)
+        rnew<-r+deltar
+        rnew
+}
+vstep<-function(r,dt=1){##same as vstep, but for velocities v
+        N<-ncol(r)
+        deltav<-dt*vgrad.U(r[1:3,])
+        null<-rep(0,times=N)
+        null<-rbind(null,null,null)##null is now a matrix 3*N of all zeroes
+        deltav<-rbind(null,deltav)
+        vnew<-r-deltav
+        vnew
 }
