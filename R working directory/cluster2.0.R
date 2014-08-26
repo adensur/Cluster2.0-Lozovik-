@@ -104,9 +104,9 @@ reinit<-function(N){##loads r from file; returns it
         r<-as.matrix(read.csv(file))
         r
 }
-myplot<-function(r){##rad is a vector of shell radiuses. Particles within radk, rad(k+1) will be drown in same color
+myplot<-function(r,...){##rad is a vector of shell radiuses. Particles within radk, rad(k+1) will be drown in same color
         library(rgl)
-        plot3d(r[1,],r[2,],r[3,])##дописать функцию, чтобы рисовала частицы разных оболочек разными цветами
+        plot3d(r[1,],r[2,],r[3,],...)##дописать функцию, чтобы рисовала частицы разных оболочек разными цветами
 }##extends possibility of plot3d to plot a matrix 3xN
 descent<-function(N=1:100,print=FALSE,alfa=1){##calcs descent over vector of N's and write each to a file
         for(i in N){
@@ -126,7 +126,7 @@ rad<-function(r){##calculates the distance from particle k to the beginning of t
         }
         rad
 }
-temp<-function(r,T){##adds a small, random increments to the coordinates (r) and velocities of the system
+temp<-function(r,T=0.001){##adds a small, random increments to the coordinates (r) and velocities of the system
         N<-ncol(r)
         dr<-rbind(rnorm(N,sd=T),rnorm(N,sd=T),rnorm(N,sd=T)) ##for now T is just the standart
                                                                 ##deviation of the new distribution
@@ -143,7 +143,7 @@ rstep<-function(r, dt=1){##returns a next step of the "leap frog" iteration proc
         rnew<-r+deltar
         rnew
 }
-vstep<-function(r,dt=1){##same as vstep, but for velocities v
+vstep<-function(r,dt=1){##same as rstep, but for velocities v
         N<-ncol(r)
         deltav<-dt*vgrad.U(r[1:3,])
         null<-rep(0,times=N)
@@ -152,3 +152,67 @@ vstep<-function(r,dt=1){##same as vstep, but for velocities v
         vnew<-r-deltav
         vnew
 }
+array.descent<-function(N=27,M=20,sd=1,alfa=0.5,K=20000,print=FALSE){
+        ##calculates a series of grad. descents to compare local minimums
+        arr<-array(dim=c(3,27,M))
+        for(m in 1:M){
+                r<-rbind(rnorm(N,sd=sd),rnorm(N,sd=sd),rnorm(N,sd=sd))
+                arr[,,m]<-gradient.descent(N=N,r=r,alfa=alfa,K=K,print=print)
+        }
+        arr
+}
+array.U<-function(arr,M){
+        ##calculates a vector of potential energies from the array of 3*N*M M different r vectors.
+        vector.U<-NULL
+        for(m in 1:M){
+                vector.U<-c(vector.U,U(arr[,,m]))
+        }
+}
+myplot2<-function(r,neightbours=5,...){
+        t<-0
+        plot3d(r[1,],r[2,],r[3,],...)
+        library(rgl)
+        N<-ncol(r)
+        if(neightbours>N){
+                neightbours<-N
+        }
+        for(i in 1:N){
+                plotted<-0
+                lim<-0.1
+                while(plotted<=neightbours & t<10000){
+                        for(k in i:N){
+                                t<-t+1
+                                if(i!=k){
+                                        r2<-r[,c(i,k)]
+                                        a<-r[,i]
+                                        b<-r[,k]
+                                        theta <- acos( sum(a*b) / ( sqrt(sum(a * a)) * sqrt(sum(b * b)) ) )
+                                        ##this calculates angle between vectors
+                                        if(theta<lim){
+                                                plotted<-plotted+1
+                                                plot3d(r2[1,],r2[2,],r2[3,],type="l",add=TRUE,...)
+                                        }
+                                }
+                        }
+                        lim<-lim+0.1
+                }
+        }
+}
+molecular<-function(r,K,dt=0.1,print=FALSE,plot=FALSE){
+        add=FALSE
+        for (i in 1:K){
+                if(print)print(U(r))
+                if(plot)myplot(r,add=add)
+                add<-TRUE
+                r<-rstep(r,dt)
+                r<-vstep(r,dt)
+        }
+        if(print)print(U(r))
+        r
+}
+##r<-gradient.descent(N=27,r=r,alfa=0.5,K=5000, print = TRUE)
+##r<-reinit(N)
+##ra<-rad(r)
+##plot(sort(ra))
+##myplot(r)
+##U(r)
