@@ -84,6 +84,12 @@ U<-function(r){##returns a value of the potential energy of the system
         names(U)<-"Potential energy"
         U
 }
+Kinn<-function(r,n){
+        ##calculates kinetic energy of the particle n in the system specified by r.
+        sum<-r[4,n]^2+r[5,n]^2+r[6,n]^2
+        names(sum)<-"Kinetic energy"
+        sum
+}
 init<-function(N){##initializes matrix 3 times N with correct rownames and random values
         r<-rbind(rnorm(N),rnorm(N),rnorm(N))
         rownames(r)<-(c("x","y","z"))
@@ -198,17 +204,25 @@ myplot2<-function(r,neightbours=5,...){
                 }
         }
 }
-molecular<-function(r,K,dt=0.1,print=FALSE,plot=FALSE){
+molecular<-function(r,K=10000,dt=0.1,print=FALSE,plot=FALSE,fun="r"){
         add=FALSE
+        distr<-NULL
+        N<-ncol(r)
         for (i in 1:K){
                 if(print)print(U(r))
                 if(plot)myplot(r,add=add)
                 add<-TRUE
                 r<-rstep(r,dt)
                 r<-vstep(r,dt)
+                if(fun=="Kinn"){
+                        for(j in 1:N){
+                                distr<-c(distr,Kinn(r,n=j))
+                        }
+                }
         }
         if(print)print(U(r))
-        r
+        if(fun=="r")r
+        else distr
 }
 ##r<-gradient.descent(N=27,r=r,alfa=0.5,K=5000, print = TRUE)
 ##r<-reinit(N)
@@ -216,3 +230,5 @@ molecular<-function(r,K,dt=0.1,print=FALSE,plot=FALSE){
 ##plot(sort(ra))
 ##myplot(r)
 ##U(r)
+
+##hist(fun) plots distribution
