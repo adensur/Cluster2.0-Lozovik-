@@ -107,6 +107,7 @@ delta<-function(r,alfa=1){##calculate vector of difference (one gradient descent
 }
 reinit<-function(type="N",N,K,dt,T){##loads r from file; returns it
         if(type=="N"){
+                print("type=N, getting energy minimum configurations")
                 file<-paste(c("data_init/",N,".csv"),collapse="")
                 r<-as.matrix(read.csv(file))
                 r
@@ -313,6 +314,17 @@ mywrite<-function(object,type,N,K,dt,T){
                 file<-paste(c("data_molecular/r.aggr_N=",N,"_K=",K,"_dt=",dt,"_T=",T,".csv"),collapse="")
                 write.csv(object,file=file,row.names=FALSE)
         }
+}
+ro.perp<-function(x,a){
+        ##calculates the distance between point M(x,y,z) and line s(a,b,c), where a is a vector of length 3 (a,b,c), and x 
+        ##is a vector of length 3 x,y,z
+        sqrt((x[2]*a[3]-a[2]*x[3])^2+(x[3]*a[1]-x[1]*a[3])^2+(x[1]*a[2]-x[2]*a[1])^2)/sqrt(a[1]^2+a[2]^2+a[3]^2)
+}
+ro.par<-function(x,a){
+        ##calculates the distance between point of perpendicular from M(x,y,z) on the line s(a,b,c) to the beginning of coords
+        ##, where a is a vector of length 3 (a,b,c), and x 
+        ##is a vector of length 3 x,y,z
+        (x[1]*a[1]+x[2]*a[2]+x[3]*a[3])/sqrt(a[1]^2+a[2]^2+a[3]^2)
 }
 ##r<-gradient.descent(N=27,r=r,alfa=0.5,K=5000, print = TRUE)
 ##r<-reinit(N)
