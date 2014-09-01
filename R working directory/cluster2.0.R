@@ -144,7 +144,7 @@ reinit<-function(type="N",N,K,dt,T){##loads r from file; returns it
 }
 myplot<-function(r,...){##rad is a vector of shell radiuses. Particles within radk, rad(k+1) will be drown in same color
         library(rgl)
-        plot3d(r[1,],r[2,],r[3,],...)##äîïèñàòü ôóíêöèş, ÷òîáû ğèñîâàëà ÷àñòèöû ğàçíûõ îáîëî÷åê ğàçíûìè öâåòàìè
+        plot3d(r[1,],r[2,],r[3,],...)##Ã¤Ã®Ã¯Ã¨Ã±Ã Ã²Ã¼ Ã´Ã³Ã­ÃªÃ¶Ã¨Ã¾, Ã·Ã²Ã®Ã¡Ã» Ã°Ã¨Ã±Ã®Ã¢Ã Ã«Ã  Ã·Ã Ã±Ã²Ã¨Ã¶Ã» Ã°Ã Ã§Ã­Ã»Ãµ Ã®Ã¡Ã®Ã«Ã®Ã·Ã¥Ãª Ã°Ã Ã§Ã­Ã»Ã¬Ã¨ Ã¶Ã¢Ã¥Ã²Ã Ã¬Ã¨
 }##extends possibility of plot3d to plot a matrix 3xN
 descent<-function(N=1:100,print=FALSE,alfa=1){##calcs descent over vector of N's and write each to a file
         for(i in N){
@@ -163,6 +163,9 @@ rad<-function(r){##calculates the distance from particle k to the beginning of t
                 rad[k]<-(r[1,k]^2+r[2,k]^2+r[3,k]^2)^(0.5)
         }
         rad
+}
+radn<-function(r,n){##calculates mean radius of particle n in the cluster specified by r
+        (r[1,n]^2+r[2,n]^2+r[3,n]^2)^(0.5)
 }
 temp<-function(r,T=0.001){##adds a small, random increments to the coordinates (r) and velocities of the system
         N<-ncol(r)
@@ -192,7 +195,7 @@ vstep<-function(r,dt=1){##same as rstep, but for velocities v
 }
 array.descent<-function(N=27,M=20,sd=1,alfa=0.5,K=20000,print=FALSE){
         ##calculates a series of grad. descents to compare local minimums
-        arr<-array(dim=c(3,27,M))
+        arr<-array(dim=c(3,N,M))
         for(m in 1:M){
                 r<-rbind(rnorm(N,sd=sd),rnorm(N,sd=sd),rnorm(N,sd=sd))
                 arr[,,m]<-gradient.descent(N=N,r=r,alfa=alfa,K=K,print=print)
