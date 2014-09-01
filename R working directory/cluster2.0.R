@@ -99,10 +99,25 @@ delta<-function(r,alfa=1){##calculate vector of difference (one gradient descent
         }
         r2
 }
-reinit<-function(N){##loads r from file; returns it
-        file<-paste(c("data_init/",N,".csv"),collapse="")
-        r<-as.matrix(read.csv(file))
-        r
+reinit<-function(N, type="N"){##loads r from file; returns it
+        if(type=="N"){
+                file<-paste(c("data_init/",N,".csv"),collapse="")
+                r<-as.matrix(read.csv(file))
+                r
+        }
+        else if(type=="arr"){
+                file<-paste(c("data_init/arr",N,".csv"),collapse="")
+                arr2<-read.csv(file=file) ##a data frame 3 by (N*M)
+                L<-dim(arr2)[2]
+                M<-L/N
+                arr<-array(dim=c(3,N,M))
+                for(m in 1:M){
+                        for(n in 1:N){
+                                arr[,n,m]<-arr2[,(N*(m-1)+n)]
+                        }
+                }
+                arr
+        }
 }
 myplot<-function(r,...){##rad is a vector of shell radiuses. Particles within radk, rad(k+1) will be drown in same color
         library(rgl)
@@ -159,6 +174,8 @@ array.descent<-function(N=27,M=20,sd=1,alfa=0.5,K=20000,print=FALSE){
                 r<-rbind(rnorm(N,sd=sd),rnorm(N,sd=sd),rnorm(N,sd=sd))
                 arr[,,m]<-gradient.descent(N=N,r=r,alfa=alfa,K=K,print=print)
         }
+        file<-paste(c("data_init/arr",N,".csv"),collapse="")
+        write.csv(arr,file=file,row.names=FALSE)
         arr
 }
 array.U<-function(arr,M){
@@ -167,6 +184,7 @@ array.U<-function(arr,M){
         for(m in 1:M){
                 vector.U<-c(vector.U,U(arr[,,m]))
         }
+        vector.U
 }
 myplot2<-function(r,neightbours=5,...){
         t<-0
@@ -210,6 +228,7 @@ molecular<-function(r,K,dt=0.1,print=FALSE,plot=FALSE){
         if(print)print(U(r))
         r
 }
+
 ##r<-gradient.descent(N=27,r=r,alfa=0.5,K=5000, print = TRUE)
 ##r<-reinit(N)
 ##ra<-rad(r)
