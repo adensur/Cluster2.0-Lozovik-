@@ -128,7 +128,7 @@ reinit<-function(type="N",N,K,dt,T){##loads r from file; returns it
                 print("type = r.aggr specified. getting array data for r aggregations")
                 file<-paste(c("data_molecular/r.aggr_N=",N,"_K=",K,"_dt=",dt,"_T=",T,".csv"),collapse="")
                 aggr2<-read.csv(file=file) ##data frame of 6*N*K
-                l<-dim(aggr2)[2]
+                L<-dim(aggr2)[2]
                 K2<-L/N
                 if(K2!=K){stop("wrong K in the dimension of file. aborting")}
                 else{
