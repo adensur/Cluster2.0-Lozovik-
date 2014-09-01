@@ -105,7 +105,7 @@ delta<-function(r,alfa=1){##calculate vector of difference (one gradient descent
         }
         r2
 }
-reinit<-function(N, type="N"){##loads r from file; returns it
+reinit<-function(type="N",N,K,dt,T){##loads r from file; returns it
         if(type=="N"){
                 file<-paste(c("data_init/",N,".csv"),collapse="")
                 r<-as.matrix(read.csv(file))
@@ -123,6 +123,23 @@ reinit<-function(N, type="N"){##loads r from file; returns it
                         }
                 }
                 arr
+        }
+        else if(type=="r.aggr"){
+                print("type = r.aggr specified. getting array data for r aggregations")
+                file<-paste(c("data_molecular/r.aggr_N=",N,"_K=",K,"_dt=",dt,"_T=",T,".csv"),collapse="")
+                aggr2<-read.csv(file=file) ##data frame of 6*N*K
+                l<-dim(aggr2)[2]
+                K2<-L/N
+                if(K2!=K){stop("wrong K in the dimension of file. aborting")}
+                else{
+                        agrr<-array(dim=c(3,N,K))
+                        for(k in 1:K){
+                                for(n in 1:N){
+                                        aggr[,n,k]<-aggr2[,(N*(k-1)+n)]
+                                }
+                        }
+                        agrr
+                }
         }
 }
 myplot<-function(r,...){##rad is a vector of shell radiuses. Particles within radk, rad(k+1) will be drown in same color
@@ -223,26 +240,77 @@ myplot2<-function(r,neightbours=5,...){
         }
 }
 molecular<-function(r,K=10000,dt=0.1,print=FALSE,plot=FALSE,fun="r"){
-        add=FALSE
-        distr<-NULL
+        ##K - number of molecular dynamics iterations
+        
+        ##print - if R should print out potential energy at each step
+        
+        ##plot  - if R should plot the cluster in 3D with animation of molecular dynamics
+        
+        ##fun: choose between options of calculating, aggregating and returning data:
+        
+        ##fun = "r" - simple molecular dynamics with no additional calculations, returns 
+        ##"r" object
+        
+        ##fun = "r.aggregate" - on every step, adds current "r" object to the general
+        ##array and returns it in the end. (Result - an array of 6*N*K elements instead of
+        ##a matrix of 6*N)
+        
+        ##fun = "Kinn" = on every step, calculates kinetic energy via function "Kinn" for 
+        ##each individual particle and adds it to a vector. Result - N*K length vector
+        ##with kinetic energy values
+        add=FALSE              ##this logical variable determines if the plot should add stuff or make new plot
         N<-ncol(r)
-        for (i in 1:K){
-                if(print)print(U(r))
-                if(plot)myplot(r,add=add)
-                add<-TRUE
-                r<-rstep(r,dt)
-                r<-vstep(r,dt)
-                if(fun=="Kinn"){
+        if(fun=="Kinn"){
+                print("fun=Kinn specified. aggregating kinetic energies of individual particles, returning kinetic energies vector")
+                kinn<-NULL     ##vector of kinetic energy values
+                for (i in 1:K){
+                        if(print)print(U(r))
+                        if(plot)myplot(r,add=add)
+                        add<-TRUE
+                        r<-rstep(r,dt)
+                        r<-vstep(r,dt)
                         for(j in 1:N){
-                                distr<-c(distr,Kinn(r,n=j))
+                                kinn<-c(kinn,Kinn(r,n=j))
                         }
                 }
+                if(print)print(U(r))
+                return(kinn)
         }
-        if(print)print(U(r))
-        if(fun=="r")r
-        else distr
+        else if (fun=="r"){
+                print("fun=r specified. performing simple molecular dynamics, returning r")
+                for (i in 1:K){
+                        if(print)print(U(r))
+                        if(plot)myplot(r,add=add)
+                        add<-TRUE
+                        r<-rstep(r,dt)
+                        r<-vstep(r,dt)
+                }
+                if(print)print(U(r))
+                return(r)
+        }
+        else if (fun=="r.aggregate"){
+                print("fun=r.aggregate specified. Aggregating r's into one big array and returning it")
+                r.aggr<-array(dim=c(6,N,K))
+                for (i in 1:K){
+                        if(print)print(U(r))
+                        if(plot)myplot(r,add=add)
+                        add<-TRUE
+                        r<-rstep(r,dt)
+                        r<-vstep(r,dt)
+                        r.aggr[,,i]<-r
+                }
+                if(print)print(U(r))
+                return(r.aggr)
+        }
 }
-
+mywrite<-function(object,type,N,K,dt,T){
+        ##writes into a file an object, class of which is specified by "type"
+        if(type=="r.aggr"){
+                print("type=r.aggr specified. Writing into file array of r's, marking N, K, dt and T in the filename")
+                file<-paste(c("data_molecular/r.aggr_N=",N,"_K=",K,"_dt=",dt,"_T=",T,".csv"),collapse="")
+                write.csv(object,file=file,row.names=FALSE)
+        }
+}
 ##r<-gradient.descent(N=27,r=r,alfa=0.5,K=5000, print = TRUE)
 ##r<-reinit(N)
 ##ra<-rad(r)
