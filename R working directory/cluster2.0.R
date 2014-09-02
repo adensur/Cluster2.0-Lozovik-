@@ -50,8 +50,7 @@ grad.U<-function(r,var,k){##takes numeric vectors x,y,z, and number of particles
 }
 vgrad.U<-function(r){##based on grad.U. returns the 3*N vector of gradient
         N<-ncol(r)
-        null<-rep(0,times=N)
-        grad<-rbind(null,null,null)##the initial value for vector grad is all zeroes; 3*N matrix
+        grad<-matrix(nrow=3,ncol=N)
         for(k in 1:N){
                 for(var in 1:3){
                         grad[var,k]<-grad.U(r,var,k)
@@ -177,22 +176,12 @@ temp<-function(r,T=0.001){##adds a small, random increments to the coordinates (
         r<-rbind(r,dv)
 }
 rstep<-function(r, dt=1){##returns a next step of the "leap frog" iteration process
-        N<-ncol(r)
-        deltar<-dt*r[4:6,]##this is now the matrix 3*N of small random increments
-        null<-rep(0,times=N)
-        null<-rbind(null,null,null)##null is now a matrix 3*N of all zeroes
-        deltar<-rbind(deltar,null)
-        rnew<-r+deltar
-        rnew
+        r[1:3,]<-r[1:3,]+dt*r[4:6,]
+        r
 }
 vstep<-function(r,dt=1){##same as rstep, but for velocities v
-        N<-ncol(r)
-        deltav<-dt*vgrad.U(r[1:3,])
-        null<-rep(0,times=N)
-        null<-rbind(null,null,null)##null is now a matrix 3*N of all zeroes
-        deltav<-rbind(null,deltav)
-        vnew<-r-deltav
-        vnew
+        r[4:6,]<-r[4:6,]-dt*vgrad.U(r[1:3,])
+        r
 }
 array.descent<-function(N=27,M=20,sd=1,alfa=0.5,K=20000,print=FALSE){
         ##calculates a series of grad. descents to compare local minimums
@@ -243,7 +232,7 @@ myplot2<-function(r,neightbours=5,...){
                 }
         }
 }
-molecular<-function(r,K=10000,dt=0.1,print=FALSE,plot=FALSE,fun="r"){
+molecular<-function(r,K=10000,dt=0.1,print=FALSE,plot=FALSE,fun="r", skip=10){
         ##K - number of molecular dynamics iterations
         
         ##print - if R should print out potential energy at each step
@@ -262,19 +251,24 @@ molecular<-function(r,K=10000,dt=0.1,print=FALSE,plot=FALSE,fun="r"){
         ##fun = "Kinn" = on every step, calculates kinetic energy via function "Kinn" for 
         ##each individual particle and adds it to a vector. Result - N*K length vector
         ##with kinetic energy values
+        
+        ##skip - integer; specifies how many iterations to skip before plotting/aggregating again
+        
         add=FALSE              ##this logical variable determines if the plot should add stuff or make new plot
         N<-ncol(r)
         if(fun=="Kinn"){
                 print("fun=Kinn specified. aggregating kinetic energies of individual particles, returning kinetic energies vector")
                 kinn<-NULL     ##vector of kinetic energy values
                 for (i in 1:K){
-                        if(print)print(U(r))
-                        if(plot)myplot(r,add=add)
-                        add<-TRUE
                         r<-rstep(r,dt)
                         r<-vstep(r,dt)
-                        for(j in 1:N){
-                                kinn<-c(kinn,Kinn(r,n=j))
+                        if(i%%skip==0){
+                                for(j in 1:N){
+                                        kinn<-c(kinn,Kinn(r,n=j))
+                                }
+                                if(print)print(U(r))
+                                if(plot)myplot(r,add=add)
+                                add<-TRUE
                         }
                 }
                 if(print)print(U(r))
@@ -283,9 +277,11 @@ molecular<-function(r,K=10000,dt=0.1,print=FALSE,plot=FALSE,fun="r"){
         else if (fun=="r"){
                 print("fun=r specified. performing simple molecular dynamics, returning r")
                 for (i in 1:K){
-                        if(print)print(U(r))
-                        if(plot)myplot(r,add=add)
-                        add<-TRUE
+                        if(i%%skip==0){
+                                if(print)print(U(r))
+                                if(plot)myplot(r,add=add)
+                                add<-TRUE
+                        }
                         r<-rstep(r,dt)
                         r<-vstep(r,dt)
                 }
@@ -294,16 +290,34 @@ molecular<-function(r,K=10000,dt=0.1,print=FALSE,plot=FALSE,fun="r"){
         }
         else if (fun=="r.aggregate"){
                 print("fun=r.aggregate specified. Aggregating r's into one big array and returning it")
-                r.aggr<-array(dim=c(6,N,K))
+                r.aggr<-array(dim=c(6,N,K%/%skip))
                 for (i in 1:K){
-                        if(print)print(U(r))
-                        if(plot)myplot(r,add=add)
-                        add<-TRUE
                         r<-rstep(r,dt)
                         r<-vstep(r,dt)
-                        r.aggr[,,i]<-r
+                        if(i%%skip==0){
+                                r.aggr[,,i/skip]<-r
+                                if(print)print(U(r))
+                                if(plot)myplot(r,add=add)
+                                add<-TRUE
+                        }
                 }
                 if(print)print(U(r))
+                return(r.aggr)
+        }
+}
+molecular2<-function(r,K1,K2,dt=0.1,fun="r.aggregate"){
+        N=ncol(r)
+        if(fun=="r.aggregate"){
+                print("specified r=r.aggregate. aggregating array")
+                r.aggr<-array(dim=c(6,N,K1))
+                for(k1 in 1:K1){
+                        for(k2 in 1:K2){
+                                r<-rstep(r,dt)
+                                r<-vstep(r,dt)
+                        }
+                        aggr[,,k1]<-r
+                        print(c("k1=",k1))
+                }
                 return(r.aggr)
         }
 }
@@ -320,12 +334,98 @@ ro.perp<-function(x,a){
         ##is a vector of length 3 x,y,z
         sqrt((x[2]*a[3]-a[2]*x[3])^2+(x[3]*a[1]-x[1]*a[3])^2+(x[1]*a[2]-x[2]*a[1])^2)/sqrt(a[1]^2+a[2]^2+a[3]^2)
 }
+ro.perp.aggrn<-function(aggrn,a){
+        ##calculates the ro.perp function between a and vectors
+        ##x, specified by aggrn[,k]ths elements
+        ##aggrn is an array of 3*K
+        K<-dim(aggrn)[2]
+        ro<-NULL
+        for(i in 1:K){
+                ro<-c(ro,ro.perp(aggrn[,i],a))
+        }
+        ro
+}
+ro.perp.NK<-function(aggr,line){
+        ##calculates perpendicular distance from each point in an array aggr
+        ##returns N*K matrix
+        N=dim(aggr)[2]
+        K=dim(aggr)[3]
+        matrix.roperp<-matrix(nrow=N,ncol=K)
+        for(n in 1:N){
+                for(k in 1:K){
+                        matrix.roperp[n,k]<-ro.perp(aggr[1:3,n,k],line)
+                }
+        }
+        matrix.roperp
+}
+ro.par.NK<-function(aggr,line){
+        ##calculates perpendicular distance from each point in an array aggr
+        ##returns N*K matrix
+        N=dim(aggr)[2]
+        K=dim(aggr)[3]
+        matrix.ropar<-matrix(nrow=N,ncol=K)
+        for(n in 1:N){
+                for(k in 1:K){
+                        matrix.ropar[n,k]<-ro.par(aggr[1:3,n,k],line)
+                }
+        }
+        matrix.ropar
+}
 ro.par<-function(x,a){
         ##calculates the distance between point of perpendicular from M(x,y,z) on the line s(a,b,c) to the beginning of coords
         ##, where a is a vector of length 3 (a,b,c), and x 
         ##is a vector of length 3 x,y,z
         (x[1]*a[1]+x[2]*a[2]+x[3]*a[3])/sqrt(a[1]^2+a[2]^2+a[3]^2)
 }
+line.search<-function(aggr,S, line=rnorm(3)){
+        ##A function to search for the axis of symmetry of the system using random
+        ##search. 
+        
+        ## aggr - specifies the array of r objects with aggr[,,k] for each k
+        ##being a vector of 3*N of coordinates of N particles.
+        ##line is specified by 3 parametres a, b, c with a^2+b^2+c^2=1.
+        
+        ## n - specifies a particle, for which the line of symmetry is found.
+        N=dim(aggr)[2]
+        alfa=1
+        sd1=vector(length=N)
+        sd2=vector(length=N)
+        for(i in 1:N){
+                sd1[i]=sd(ro.perp.aggr(aggr[,i,],line))
+        }
+        for(i in 1:S){
+                a2<-line-rnorm(3)/alfa
+                for(i in 1:N){
+                        sd2[i]=sd(ro.perp.aggr(aggr[,i,],a2))
+                        
+                }
+                if(sum(sd2)<sum(sd1)){
+                        line<-a2
+                        sd1<-sd2
+                        alfa<-alfa*0.9
+                }
+        }
+        line<-line/sqrt(line[1]^2+line[2]^2+line[3]^2)
+        print(c("returning vector for sd=",sd1))
+        line
+}
+aggr.plot<-function(aggr,line=c(0,0,0),skip=1){
+        ##skip - an integer representing, how often to plot a vector
+        add<-FALSE
+        library(rgl)
+        K<-dim(aggr)[3]
+        for(i in 1:K){
+                        if(i%%skip==0){
+                        myplot(aggr[,,i],add=add)
+                        add<-TRUE
+                }
+        }
+        x<-c(0,line[1])
+        y<-c(0,line[2])
+        z<-c(0,line[3])
+        plot3d(x,y,z,type="l",add=TRUE)
+}
+        
 ##r<-gradient.descent(N=27,r=r,alfa=0.5,K=5000, print = TRUE)
 ##r<-reinit(N)
 ##ra<-rad(r)
