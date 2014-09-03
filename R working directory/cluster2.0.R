@@ -89,6 +89,14 @@ Kinn<-function(r,n){
         names(sum)<-"Kinetic energy"
         sum
 }
+E<-function(r){
+        N<-dim(r)[2]
+        E<-0
+        for(n in 1:N){
+                E<-E+r[4,n]^2+r[5,n]^2+r[6,n]^2
+        }
+        E+U(r)
+}
 init<-function(N){##initializes matrix 3 times N with correct rownames and random values
         r<-rbind(rnorm(N),rnorm(N),rnorm(N))
         rownames(r)<-(c("x","y","z"))
@@ -316,7 +324,7 @@ molecular2<-function(r,K1,K2,dt=0.1,fun="r.aggregate"){
                                 r<-vstep(r,dt)
                         }
                         aggr[,,k1]<-r
-                        print(c("k1=",k1))
+                        print(paste(c("k1=",k1,"E=",E(r))))
                 }
                 return(r.aggr)
         }
