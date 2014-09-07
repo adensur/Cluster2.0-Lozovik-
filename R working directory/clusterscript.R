@@ -1,6 +1,31 @@
+##Data frame moilecular dynamics
+T.vector<-seq(0.01,0.1,by=0.01)
+
+data<-data.frame()
+col
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ##Initialization
 r<-reinit(27)
 r<-temp(r,0.03)
+
 
 ##Molecular dynamics
 K=10
