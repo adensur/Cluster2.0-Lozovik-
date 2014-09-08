@@ -83,6 +83,19 @@ U<-function(r){##returns a value of the potential energy of the system
         names(U)<-"Potential energy"
         U
 }
+Un<-function(r,n){
+        ##returns potential energy of the particle #n
+        N<-ncol(r)
+        U<-0
+        for(i in 1:N){
+                if(i!=n){
+                        U<-U+rki(r,n,i)^(-6)
+                }
+        }
+        U<-U/2+r[1,n]^2+r[2,n]^2+r[3,n]^2
+        names(U)<-"Potential energy"
+        U
+}
 Kinn<-function(r,n){
         ##calculates kinetic energy of the particle n in the system specified by r.
         sum<-r[4,n]^2+r[5,n]^2+r[6,n]^2
