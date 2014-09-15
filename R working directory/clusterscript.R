@@ -1,15 +1,9 @@
-##Data frame moilecular dynamics
-T.vector<-seq(0.01,0.1,by=0.01)
-
-data<-data.frame()
-col
-
-
-
-
-
-
-
+##Checking local minima for N=25
+r<-reinit(N=25)
+arr<-array.descent(N=25,M=20,sd=1,alfa=0.5,K=50000,print=FALSE)
+i=4
+arr[,,i]<-gradient.descent(25,arr[,,i],K=5000)
+array.U(arr,20)
 
 
 
