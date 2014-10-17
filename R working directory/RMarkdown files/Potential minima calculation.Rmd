@@ -1,0 +1,24 @@
+---
+title: "Potential minima calculation"
+output: html_document
+---
+
+The physical system is defined by the following potential energy:
+$$
+U=\sum_{k=1}^{N}r_k^2+\sum_{i,k=1;i>k}^{N}\frac{1}{r_{ik}^6} (1)
+$$
+Here N is the number of particles in the system, $r_k=\sqrt{x^2+y^2+z^2}$ is the radius-vector of a paticle number *k* in 3-dimensional space;  $r_{ik}=\sqrt{(x_i-x_k)^2+(y_i-y_k)^2+(z_i-z_k)^2}$ is the distance between particles *i* and *k* in 3-dimensional space.
+
+
+We want to find equilibrium states of such system, which means that we are to find the minimum of the potential energy (1)  
+We are going to do that by assigning N random radius-vectors for the initial state of the system, and then performing gradient descent calculations to define the potential minimums.  
+First let's write a function to initialize the random state of the system:
+```{r}
+init<-function(N){##initializes matrix 3 x N with correct rownames and random values
+        r<-cbind(rnorm(N),rnorm(N),rnorm(N))
+        colnames(r)<-(c("x","y","z"))
+        r
+}
+init(5)
+```
+We can see now the result of initialization for N=5.

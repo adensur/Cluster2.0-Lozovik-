@@ -110,7 +110,7 @@ E<-function(r){
         }
         E+U(r)
 }
-init<-function(N){##initializes matrix 3 times N with correct rownames and random values
+init<-function(N){##initializes matrix 3 x N with correct rownames and random values
         r<-rbind(rnorm(N),rnorm(N),rnorm(N))
         rownames(r)<-(c("x","y","z"))
         r
