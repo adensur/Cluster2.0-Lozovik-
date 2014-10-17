@@ -22,3 +22,38 @@ init<-function(N){##initializes matrix 3 x N with correct rownames and random va
 init(5)
 ```
 We can see now the result of initialization for N=5.
+In the future, we will store the state of the system in the matrices of same sort, for example, like this:
+```{r}
+r=init(5)
+```
+In the future we will need to be able to calculate the distance $r_{ki}$ between particles, so let's make a short function that does that:
+```{r}
+rki<-function(r,k,i){##calculates the distance between particle i and particle k; 
+        ##x, y, z (vectors) specify coordinates of all particles
+        rki<-NULL
+        if(k==i){print("rki error! k=i!")}
+        else{
+                rki<-((r[k,1]-r[i,1])^2+(r[k,2]-r[i,2])^2+(r[k,3]-r[i,3])^2)^0.5
+        }
+        names(rki)<-"Distance"
+        rki
+}
+```
+Now lets check it out:
+```{r}
+distance=rki(r,2,3)
+```
+We can now see that the calculated distance is equal to `r distance`. We can check if its correct manually:
+```{r}
+r=matrix(c(1,2,1,2,1,2),ncol=3,nrow=2)
+```
+
+
+
+
+
+
+
+
+
+
