@@ -165,7 +165,7 @@ reinit<-function(N,type="N",K,dt,T){##loads r from file; returns it
 }
 myplot<-function(r,...){##rad is a vector of shell radiuses. Particles within radk, rad(k+1) will be drown in same color
         library(rgl)
-        plot3d(r[1,],r[2,],r[3,],...)##äîïèñàòü ôóíêöèþ, ÷òîáû ðèñîâàëà ÷àñòèöû ðàçíûõ îáîëî÷åê ðàçíûìè öâåòàìè
+        plot3d(r[1,],r[2,],r[3,],...)#
 }##extends possibility of plot3d to plot a matrix 3xN
 descent<-function(N=1:100,print=FALSE,alfa=1){##calcs descent over vector of N's and write each to a file
         for(i in N){
@@ -276,8 +276,8 @@ molecular2<-function(r,K1,K2,dt=0.1,fun="r.aggregate"){
                                 r<-rstep(r,dt)
                                 r<-vstep(r,dt)
                         }
-                        aggr[,,k1]<-r
-                        print(paste(c("k1=",k1,"E=",E(r))))
+                        r.aggr[,,k1]<-r
+                        print(paste(c("k1=",k1,"E=",E(r)),collapse=" "))
                 }
                 return(r.aggr)
         }
