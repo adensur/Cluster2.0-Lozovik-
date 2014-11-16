@@ -19,19 +19,23 @@ aggr.rad=function(aggr){
         }
         radial
 }
-t=0.01
+t=c(0.0001,0.001,0.01,0.1,0.2)
 
+data=matrix(nrow=0,ncol=2)
+colnames(data)=c("temperature","sd")
 #
+for(i in 1:length(t)){
 r=reinit(27) #initial equilibrium state, T=0
-r=temp(r, temperature = t)
+r=temp(r, temperature = t[i])
 arr=molecular2(r,1000,50,dt=0.01)
-
-vel1=velocity(arr)
-hist(vel1,50)
-
 rad1=aggr.rad(arr)
 hist(rad1,50)
+sd1=NULL
 for(n in 1:N){
-        sd
+        sd1=c(sd1,sd(rad1[n,]))
 }
 #
+sd10=mean(sd1)
+vector=c(Temp,mean(sd1))
+data=rbind(data,vector)
+}
